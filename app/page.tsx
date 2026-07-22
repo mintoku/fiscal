@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Dashboard from "@/components/dashboard/Dashboard";
 import FileUploader from "@/components/FileUploader";
 import LandingHero from "@/components/LandingHero";
-import MonthlySummaryCards from "@/components/MonthlySummaryCards";
 import TransactionTable from "@/components/TransactionTable";
 import {
   ALL_TIME,
-  calculateMonthlySummary,
   filterTransactionsByPeriod,
-  formatMonthLabel,
   getAvailableMonths,
 } from "@/lib/calculateMonthlySummary";
+import {
+  filterByAccountType,
+  type AccountFilter,
+  type TypeFilter,
+} from "@/lib/dashboard";
 import {
   getUniqueUncategorizedExpenses,
   normalizeDescription,
@@ -50,9 +53,11 @@ export default function Home() {
   const [hasStarted, setHasStarted] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState<string[]>([]);
-  const [typeFilter, setTypeFilter] = useState<"all" | TransactionType>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(ALL_TIME);
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [accountFilter, setAccountFilter] = useState<AccountFilter>("all");
+  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
   const [isCategorizing, setIsCategorizing] = useState(false);
+  const [categorizeProgress, setCategorizeProgress] = useState(0);
   const [categorizeError, setCategorizeError] = useState<string | null>(null);
   const [usingSampleData, setUsingSampleData] = useState(true);
   const [samplesReady, setSamplesReady] = useState(false);
@@ -66,7 +71,7 @@ export default function Home() {
         if (cancelled || sampleTransactions.length === 0) return;
         setTransactions(sampleTransactions);
         setUsingSampleData(true);
-        setSelectedPeriod(ALL_TIME);
+        setSelectedPeriod(null);
       } finally {
         if (!cancelled) setSamplesReady(true);
       }
@@ -86,11 +91,10 @@ export default function Home() {
         ? selectedPeriod
         : (availableMonths[0] ?? null);
 
-  const periodTransactions = filterTransactionsByPeriod(
-    transactions,
-    effectivePeriod,
+  const periodTransactions = filterByAccountType(
+    filterTransactionsByPeriod(transactions, effectivePeriod),
+    accountFilter,
   );
-  const summary = calculateMonthlySummary(periodTransactions);
 
   const uncategorizedExpenseCount = transactions.filter(
     (transaction) =>
@@ -102,6 +106,7 @@ export default function Home() {
       usingSampleData ? newTransactions : [...current, ...newTransactions],
     );
     setUsingSampleData(false);
+    setSelectedPeriod(null);
   }
 
   function handleTransactionTypeChange(
@@ -150,7 +155,15 @@ export default function Home() {
     }
 
     setIsCategorizing(true);
+    setCategorizeProgress(12);
     setCategorizeError(null);
+
+    const progressTimer = window.setInterval(() => {
+      setCategorizeProgress((current) => {
+        if (current >= 88) return current;
+        return current + Math.max(1, Math.round((90 - current) * 0.08));
+      });
+    }, 200);
 
     try {
       const response = await fetch("/api/categorize", {
@@ -195,6 +208,7 @@ export default function Home() {
         });
       }
 
+      setCategorizeProgress(100);
       setTransactions((current) =>
         current.map((transaction) => {
           if (transaction.transactionType !== "expense") return transaction;
@@ -218,14 +232,19 @@ export default function Home() {
         "Could not reach the categorization service. Your transactions were left unchanged.",
       );
     } finally {
-      setIsCategorizing(false);
+      window.clearInterval(progressTimer);
+      window.setTimeout(() => {
+        setIsCategorizing(false);
+        setCategorizeProgress(0);
+      }, 350);
     }
   }
 
   async function handleReloadSamples() {
     setUnsupportedFiles([]);
     setTypeFilter("all");
-    setSelectedPeriod(ALL_TIME);
+    setAccountFilter("all");
+    setSelectedPeriod(null);
     setCategorizeError(null);
     const sampleTransactions = await loadSampleTransactions();
     setTransactions(sampleTransactions);
@@ -236,9 +255,16 @@ export default function Home() {
     setTransactions([]);
     setUnsupportedFiles([]);
     setTypeFilter("all");
-    setSelectedPeriod(ALL_TIME);
+    setAccountFilter("all");
+    setSelectedPeriod(null);
     setCategorizeError(null);
     setUsingSampleData(false);
+  }
+
+  function handleViewTransactions() {
+    document
+      .getElementById("transactions-heading")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (!hasStarted) {
@@ -257,251 +283,238 @@ export default function Home() {
         </button>
       </div>
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 pb-10 pt-6 sm:px-8 sm:pb-12 sm:pt-8">
-      <header className="flex flex-col gap-5 border-b border-border pb-6">
-        <div className="flex flex-col gap-1">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-green">
-            Your financial snapshot
-          </p>
-          <h1 className="font-display text-3xl tracking-tight text-foreground sm:text-4xl">
-            Fiscal
-          </h1>
-        </div>
+        <header className="flex flex-col gap-5 border-b border-border pb-6">
+          <div className="flex flex-col gap-1">
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-green">
+              Your financial snapshot
+            </p>
+            <h1 className="font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+              Fiscal
+            </h1>
+          </div>
 
-        {usingSampleData && transactions.length > 0 && (
-          <details
-            className="group w-full border border-border bg-green-soft/50"
-            open
-          >
-            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-green marker:content-none [&::-webkit-details-marker]:hidden">
-              <span className="flex items-center justify-between gap-3">
-                Getting started
-                <span className="text-xs font-normal text-muted group-open:hidden">
-                  Show
-                </span>
-                <span className="hidden text-xs font-normal text-muted group-open:inline">
-                  Hide
-                </span>
-              </span>
-            </summary>
-            <ol className="grid gap-3 border-t border-border/70 px-4 py-4 text-sm text-muted sm:grid-cols-3">
-              <li className="flex gap-2">
-                <span className="font-mono text-xs text-green">1</span>
-                <span>
-                  Try{" "}
-                  <span className="font-medium text-foreground">
-                    Categorize expenses
-                  </span>{" "}
-                  for smart suggestions — you can change any category.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-mono text-xs text-green">2</span>
-                <span>
-                  Browse periods and adjust labels anytime; you stay in control.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-mono text-xs text-green">3</span>
-                <span>
-                  <span className="font-medium text-foreground">Clear</span>, then
-                  upload your own CSVs.
-                </span>
-              </li>
-            </ol>
-          </details>
-        )}
-
-        {!usingSampleData && transactions.length === 0 && samplesReady && (
-          <div className="w-full border border-border bg-surface px-4 py-3 text-sm text-muted">
-            Sample cleared. Upload your CSV files, or{" "}
-            <button
-              type="button"
-              onClick={() => void handleReloadSamples()}
-              className="font-medium text-green underline underline-offset-2 hover:text-green-mid"
+          {usingSampleData && transactions.length > 0 && (
+            <details
+              className="group w-full border border-border bg-green-soft/50"
+              open
             >
-              reload the sample
-            </button>
-            .
-          </div>
-        )}
-      </header>
+              <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-green marker:content-none [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center justify-between gap-3">
+                  Getting started
+                  <span className="text-xs font-normal text-muted group-open:hidden">
+                    Show
+                  </span>
+                  <span className="hidden text-xs font-normal text-muted group-open:inline">
+                    Hide
+                  </span>
+                </span>
+              </summary>
+              <ol className="grid gap-3 border-t border-border/70 px-4 py-4 text-sm text-muted sm:grid-cols-3">
+                <li className="flex gap-2">
+                  <span className="font-mono text-xs text-green">1</span>
+                  <span>
+                    Try{" "}
+                    <span className="font-medium text-foreground">
+                      Categorize expenses
+                    </span>{" "}
+                    for smart suggestions — you can change any category.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-mono text-xs text-green">2</span>
+                  <span>
+                    Browse the dashboard insights, then adjust labels anytime.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-mono text-xs text-green">3</span>
+                  <span>
+                    <span className="font-medium text-foreground">Clear</span>,
+                    then upload your own CSVs.
+                  </span>
+                </li>
+              </ol>
+            </details>
+          )}
 
-      <section aria-labelledby="data-heading" className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-4 border-b border-border pb-2">
-          <h2
-            id="data-heading"
-            className="text-sm font-medium uppercase tracking-wide text-muted"
-          >
-            1 · Data
-          </h2>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-green hover:text-green"
-          >
-            Clear
-          </button>
-        </div>
-        <FileUploader
-          onTransactionsLoaded={handleTransactionsLoaded}
-          onUnsupportedFiles={setUnsupportedFiles}
-        />
-        <p className="border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
-          Temporary note: only Bank of America checking and credit-card CSV
-          exports are supported right now.
-        </p>
-        {unsupportedFiles.length > 0 && (
-          <div className="border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn">
-            Unsupported file
-            {unsupportedFiles.length === 1 ? "" : "s"}:{" "}
-            {unsupportedFiles.join(", ")}
-          </div>
-        )}
-      </section>
+          {!usingSampleData && transactions.length === 0 && samplesReady && (
+            <div className="w-full border border-border bg-surface px-4 py-3 text-sm text-muted">
+              Sample cleared. Upload your CSV files, or{" "}
+              <button
+                type="button"
+                onClick={() => void handleReloadSamples()}
+                className="font-medium text-green underline underline-offset-2 hover:text-green-mid"
+              >
+                reload the sample
+              </button>
+              .
+            </div>
+          )}
+        </header>
 
-      {transactions.length > 0 && (
-        <section
-          aria-labelledby="summary-heading"
-          className="flex flex-col gap-4"
-        >
-          <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
+        <section aria-labelledby="data-heading" className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-4 border-b border-border pb-2">
             <h2
-              id="summary-heading"
+              id="data-heading"
               className="text-sm font-medium uppercase tracking-wide text-muted"
             >
-              2 · Summary
+              1 · Data
             </h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <label htmlFor="period-selector" className="text-sm text-muted">
-                Period
-              </label>
-              <select
-                id="period-selector"
-                value={effectivePeriod ?? ""}
-                onChange={(event) => setSelectedPeriod(event.target.value)}
-                className="border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
-              >
-                <option value={ALL_TIME}>All time</option>
-                {availableMonths.map((monthKey) => (
-                  <option key={monthKey} value={monthKey}>
-                    {formatMonthLabel(monthKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <MonthlySummaryCards summary={summary} />
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-md text-xs leading-relaxed text-muted">
-              {uncategorizedExpenseCount > 0
-                ? `${uncategorizedExpenseCount} uncategorized expense${uncategorizedExpenseCount === 1 ? "" : "s"}`
-                : "All expenses categorized"}
-              {" · "}
-              Smart suggestions only — edit any category yourself. Only
-              descriptions are sent.
-            </p>
             <button
               type="button"
-              onClick={handleCategorizeExpenses}
-              disabled={isCategorizing || uncategorizedExpenseCount === 0}
-              className="shrink-0 bg-green px-4 py-2 text-sm font-medium text-white hover:bg-green-mid disabled:cursor-not-allowed disabled:bg-border disabled:text-muted"
+              onClick={handleClear}
+              className="border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-green hover:text-green"
             >
-              {isCategorizing ? "Categorizing…" : "Categorize expenses"}
+              Clear
             </button>
           </div>
-
-          {categorizeError && (
-            <div className="border-l-2 border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
-              {categorizeError}
+          <FileUploader
+            onTransactionsLoaded={handleTransactionsLoaded}
+            onUnsupportedFiles={setUnsupportedFiles}
+          />
+          <p className="border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
+            Temporary note: only Bank of America checking and credit-card CSV
+            exports are supported right now.
+          </p>
+          {unsupportedFiles.length > 0 && (
+            <div className="border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn">
+              Unsupported file
+              {unsupportedFiles.length === 1 ? "" : "s"}:{" "}
+              {unsupportedFiles.join(", ")}
             </div>
           )}
         </section>
-      )}
 
-      <section
-        aria-labelledby="transactions-heading"
-        className="flex flex-col gap-4"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2
-              id="transactions-heading"
-              className="text-sm font-medium uppercase tracking-wide text-muted"
-            >
-              3 · Transactions
-            </h2>
-            {usingSampleData && transactions.length > 0 && (
-              <span className="border border-green/25 bg-green-soft px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-green">
-                Sample data
-              </span>
-            )}
-          </div>
-          {usingSampleData && transactions.length > 0 && (
-            <p className="text-xs text-muted">
-              Demo checking &amp; credit-card exports — not your accounts
-            </p>
-          )}
-        </div>
-        <TransactionTable
-          transactions={periodTransactions}
-          totalCount={transactions.length}
-          typeFilter={typeFilter}
-          onTypeFilterChange={setTypeFilter}
-          onTransactionTypeChange={handleTransactionTypeChange}
-          onCategoryChange={handleCategoryChange}
-          emptyMessage={
-            !samplesReady
-              ? "Loading sample data…"
-              : transactions.length === 0
-                ? "No transactions yet. Upload your CSV files or reload the sample data."
-                : "No transactions for this time period."
-          }
-        />
-      </section>
-
-      <section
-        aria-labelledby="privacy-heading"
-        className="border-t border-border pt-6"
-      >
-        <h2
-          id="privacy-heading"
-          className="text-sm font-medium uppercase tracking-wide text-muted"
+        <section
+          aria-labelledby="dashboard-heading"
+          className="flex flex-col gap-4"
         >
-          Privacy
-        </h2>
-        <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted">
-          <ul className="list-disc space-y-1.5 pl-5">
-            <li>No account login is required.</li>
-            <li>Bank usernames, passwords, and credentials are never collected.</li>
-            <li>
-              CSV files are read and parsed in your browser; they are not uploaded
-              to a file-storage service.
-            </li>
-            <li>
-              Transaction data lives in this page&apos;s memory only for your
-              session — refreshing or clearing removes it.
-            </li>
-            <li>You can explore with built-in sample data instead of your own files.</li>
-          </ul>
-          <p>
-            <span className="font-medium text-foreground">
-              When you click Categorize expenses:
-            </span>{" "}
-            only uncategorized expense rows are considered. Matching descriptions
-            are deduplicated, then each unique item is sent as{" "}
-            <span className="font-mono text-xs text-foreground">
-              {"{ id, description }"}
-            </span>{" "}
-            to this app&apos;s categorization API, which calls an AI provider.
-            Amounts, account types, source filenames, balances, and full CSV
-            contents are not included in that request. Suggested categories stay
-            editable by you.
-          </p>
-        </div>
-      </section>
-    </main>
+          <Dashboard
+            transactions={transactions}
+            period={effectivePeriod}
+            onPeriodChange={setSelectedPeriod}
+            accountFilter={accountFilter}
+            onAccountFilterChange={setAccountFilter}
+            typeFilter={typeFilter}
+            onTypeFilterChange={setTypeFilter}
+            onViewTransactions={handleViewTransactions}
+            uncategorizedExpenseCount={uncategorizedExpenseCount}
+            isCategorizing={isCategorizing}
+            categorizeProgress={categorizeProgress}
+            onCategorize={handleCategorizeExpenses}
+            categorizeError={categorizeError}
+          />
+        </section>
+
+        <section
+          aria-labelledby="transactions-heading"
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2
+                id="transactions-heading"
+                className="text-sm font-medium uppercase tracking-wide text-muted"
+              >
+                3 · Transactions
+              </h2>
+              {usingSampleData && transactions.length > 0 && (
+                <>
+                  <span className="border border-green/25 bg-green-soft px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-green">
+                    Sample data
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="border border-border bg-surface px-2.5 py-0.5 text-xs font-medium text-foreground hover:border-green hover:text-green"
+                  >
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  document
+                    .getElementById("dashboard-filters")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+                className="text-sm font-medium text-green underline underline-offset-2 hover:text-green-mid"
+              >
+                Jump to filters
+              </button>
+              {usingSampleData && transactions.length > 0 && (
+                <p className="text-xs text-muted">
+                  Demo checking &amp; credit-card exports — not your accounts
+                </p>
+              )}
+            </div>
+          </div>
+          <TransactionTable
+            transactions={periodTransactions}
+            totalCount={transactions.length}
+            typeFilter={typeFilter}
+            onTypeFilterChange={setTypeFilter}
+            onTransactionTypeChange={handleTransactionTypeChange}
+            onCategoryChange={handleCategoryChange}
+            emptyMessage={
+              !samplesReady
+                ? "Loading sample data…"
+                : transactions.length === 0
+                  ? "No transactions yet. Upload your CSV files or reload the sample data."
+                  : "No transactions for this time period."
+            }
+          />
+        </section>
+
+        <section
+          aria-labelledby="privacy-heading"
+          className="border-t border-border pt-6"
+        >
+          <h2
+            id="privacy-heading"
+            className="text-sm font-medium uppercase tracking-wide text-muted"
+          >
+            Privacy
+          </h2>
+          <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted">
+            <ul className="list-disc space-y-1.5 pl-5">
+              <li>No account login is required.</li>
+              <li>
+                Bank usernames, passwords, and credentials are never collected.
+              </li>
+              <li>
+                CSV files are read and parsed in your browser; they are not
+                uploaded to a file-storage service.
+              </li>
+              <li>
+                Transaction data lives in this page&apos;s memory only for your
+                session — refreshing or clearing removes it.
+              </li>
+              <li>
+                You can explore with built-in sample data instead of your own
+                files.
+              </li>
+            </ul>
+            <p>
+              <span className="font-medium text-foreground">
+                When you click Categorize expenses:
+              </span>{" "}
+              only uncategorized expense rows are considered. Matching
+              descriptions are deduplicated, then each unique item is sent as{" "}
+              <span className="font-mono text-xs text-foreground">
+                {"{ id, description }"}
+              </span>{" "}
+              to this app&apos;s categorization API, which calls an AI provider.
+              Amounts, account types, source filenames, balances, and full CSV
+              contents are not included in that request. Suggested categories
+              stay editable by you.
+            </p>
+          </div>
+        </section>
+      </main>
     </>
   );
 }

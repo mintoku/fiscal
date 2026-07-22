@@ -16,25 +16,35 @@ function formatCurrency(amount: number): string {
 export default function MonthlySummaryCards({
   summary,
 }: MonthlySummaryCardsProps) {
-  const cards = [
-    { label: "Total Expenses", value: summary.totalExpenses },
-    { label: "Total Income", value: summary.totalIncome },
-    { label: "Net Cash Flow", value: summary.netCashFlow },
+  const rows = [
+    { label: "Expenses", value: summary.totalExpenses },
+    { label: "Income", value: summary.totalIncome },
+    { label: "Net", value: summary.netCashFlow, emphasize: true },
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      {cards.map((card) => (
-        <div
-          key={card.label}
-          className="rounded border border-zinc-200 bg-white px-4 py-4"
-        >
-          <p className="text-sm text-zinc-500">{card.label}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
-            {formatCurrency(card.value)}
-          </p>
-        </div>
-      ))}
+    <div className="border-y border-border bg-surface">
+      <dl className="divide-y divide-border">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-baseline justify-between gap-4 px-1 py-3 sm:px-2"
+          >
+            <dt
+              className={`text-sm ${row.emphasize ? "font-medium text-green" : "text-muted"}`}
+            >
+              {row.label}
+            </dt>
+            <dd
+              className={`font-mono text-lg tabular-nums tracking-tight sm:text-xl ${
+                row.emphasize ? "font-medium text-green" : "text-foreground"
+              }`}
+            >
+              {formatCurrency(row.value)}
+            </dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }

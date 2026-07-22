@@ -1,19 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f6f3;
+  --foreground: #1a1a1a;
+  --muted: #5c5c56;
+  --border: #d8d6cf;
+  --surface: #ffffff;
+  --green: #1f4d3a;
+  --green-soft: #e8f0eb;
+  --green-mid: #2d6a4f;
+  --danger: #8b3a3a;
+  --danger-soft: #f5e8e8;
+  --warn: #7a5b1e;
+  --warn-soft: #f5efdf;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-green-mid: var(--green-mid);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: var(--font-source-sans);
+  --font-mono: var(--font-source-code);
+  --font-display: var(--font-source-serif);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+select,
+input[type="file"]::file-selector-button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import FileUploader from "@/components/FileUploader";
+import LandingHero from "@/components/LandingHero";
 import MonthlySummaryCards from "@/components/MonthlySummaryCards";
 import TransactionTable from "@/components/TransactionTable";
 import {
@@ -46,6 +47,7 @@ async function loadSampleTransactions(): Promise<Transaction[]> {
 }
 
 export default function Home() {
+  const [hasStarted, setHasStarted] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<"all" | TransactionType>("all");
@@ -97,9 +99,7 @@ export default function Home() {
 
   function handleTransactionsLoaded(newTransactions: Transaction[]) {
     setTransactions((current) =>
-      usingSampleData
-        ? newTransactions
-        : [...current, ...newTransactions],
+      usingSampleData ? newTransactions : [...current, ...newTransactions],
     );
     setUsingSampleData(false);
   }
@@ -241,91 +241,139 @@ export default function Home() {
     setUsingSampleData(false);
   }
 
+  if (!hasStarted) {
+    return <LandingHero onStart={() => setHasStarted(true)} />;
+  }
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
-          Spending Retrospective
-        </h1>
-        <p className="max-w-2xl text-zinc-600">
-          Explore a sample checking and credit-card export, then try AI
-          categorization. When you&apos;re ready for your own data, clear the
-          sample and upload your Bank of America CSV files.
-        </p>
+    <>
+      <div className="px-5 pt-4 sm:px-8">
+        <button
+          type="button"
+          onClick={() => setHasStarted(false)}
+          className="text-sm text-muted underline underline-offset-2 hover:text-green"
+        >
+          Back to home
+        </button>
+      </div>
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 pb-10 pt-6 sm:px-8 sm:pb-12 sm:pt-8">
+      <header className="flex flex-col gap-5 border-b border-border pb-6">
+        <div className="flex flex-col gap-1">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-green">
+            Your financial snapshot
+          </p>
+          <h1 className="font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+            Fiscal
+          </h1>
+        </div>
 
         {usingSampleData && transactions.length > 0 && (
-          <div className="rounded border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-            <p className="font-medium">Getting started</p>
-            <ol className="mt-1 list-decimal space-y-1 pl-5">
-              <li>
-                Sample data is loaded. Click <strong>Categorize expenses</strong>{" "}
-                to label the uncategorized expenses.
+          <details
+            className="group w-full border border-border bg-green-soft/50"
+            open
+          >
+            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-green marker:content-none [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center justify-between gap-3">
+                Getting started
+                <span className="text-xs font-normal text-muted group-open:hidden">
+                  Show
+                </span>
+                <span className="hidden text-xs font-normal text-muted group-open:inline">
+                  Hide
+                </span>
+              </span>
+            </summary>
+            <ol className="grid gap-3 border-t border-border/70 px-4 py-4 text-sm text-muted sm:grid-cols-3">
+              <li className="flex gap-2">
+                <span className="font-mono text-xs text-green">1</span>
+                <span>
+                  Click{" "}
+                  <span className="font-medium text-foreground">
+                    Categorize expenses
+                  </span>{" "}
+                  to label the sample.
+                </span>
               </li>
-              <li>
-                Review or correct categories in the table, and browse months
-                with the time period control.
+              <li className="flex gap-2">
+                <span className="font-mono text-xs text-green">2</span>
+                <span>Browse periods and fix categories in the table.</span>
               </li>
-              <li>
-                When ready for your own info, click <strong>Clear</strong>, then
-                upload your CSV files.
+              <li className="flex gap-2">
+                <span className="font-mono text-xs text-green">3</span>
+                <span>
+                  <span className="font-medium text-foreground">Clear</span>, then
+                  upload your own CSVs.
+                </span>
               </li>
             </ol>
-          </div>
+          </details>
         )}
 
         {!usingSampleData && transactions.length === 0 && samplesReady && (
-          <div className="rounded border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
-            Sample data cleared. Upload your own Bank of America checking or
-            credit-card CSV files, or{" "}
+          <div className="w-full border border-border bg-surface px-4 py-3 text-sm text-muted">
+            Sample cleared. Upload your CSV files, or{" "}
             <button
               type="button"
               onClick={() => void handleReloadSamples()}
-              className="font-medium text-zinc-900 underline underline-offset-2 hover:text-zinc-700"
+              className="font-medium text-green underline underline-offset-2 hover:text-green-mid"
             >
-              reload the sample data
+              reload the sample
             </button>
             .
           </div>
         )}
       </header>
 
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <section aria-labelledby="data-heading" className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-4 border-b border-border pb-2">
+          <h2
+            id="data-heading"
+            className="text-sm font-medium uppercase tracking-wide text-muted"
+          >
+            1 · Data
+          </h2>
+          <button
+            type="button"
+            onClick={handleClear}
+            className="border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-green hover:text-green"
+          >
+            Clear
+          </button>
+        </div>
         <FileUploader
           onTransactionsLoaded={handleTransactionsLoaded}
           onUnsupportedFiles={setUnsupportedFiles}
         />
-        <button
-          type="button"
-          onClick={handleClear}
-          className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-        >
-          Clear
-        </button>
+        {unsupportedFiles.length > 0 && (
+          <div className="border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn">
+            Unsupported file
+            {unsupportedFiles.length === 1 ? "" : "s"}:{" "}
+            {unsupportedFiles.join(", ")}
+          </div>
+        )}
       </section>
 
-      {unsupportedFiles.length > 0 && (
-        <div className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Unsupported file
-          {unsupportedFiles.length === 1 ? "" : "s"}:{" "}
-          {unsupportedFiles.join(", ")}
-        </div>
-      )}
-
       {transactions.length > 0 && (
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="period-selector"
-                className="text-sm font-medium text-zinc-700"
-              >
-                Time period
+        <section
+          aria-labelledby="summary-heading"
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
+            <h2
+              id="summary-heading"
+              className="text-sm font-medium uppercase tracking-wide text-muted"
+            >
+              2 · Summary
+            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <label htmlFor="period-selector" className="text-sm text-muted">
+                Period
               </label>
               <select
                 id="period-selector"
                 value={effectivePeriod ?? ""}
                 onChange={(event) => setSelectedPeriod(event.target.value)}
-                className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-800"
+                className="border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
               >
                 <option value={ALL_TIME}>All time</option>
                 {availableMonths.map((monthKey) => (
@@ -335,59 +383,77 @@ export default function Home() {
                 ))}
               </select>
             </div>
+          </div>
 
-            <div className="flex max-w-md flex-col gap-1">
-              <button
-                type="button"
-                onClick={handleCategorizeExpenses}
-                disabled={isCategorizing || uncategorizedExpenseCount === 0}
-                className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-400"
-              >
-                {isCategorizing ? "Categorizing…" : "Categorize expenses"}
-              </button>
-              {uncategorizedExpenseCount > 0 ? (
-                <p className="text-xs text-zinc-600">
-                  {uncategorizedExpenseCount} uncategorized expense
-                  {uncategorizedExpenseCount === 1 ? "" : "s"} ready — click to
-                  categorize.
-                </p>
-              ) : (
-                <p className="text-xs text-zinc-500">
-                  All expenses are categorized. You can still edit any row.
-                </p>
-              )}
-              <p className="text-xs text-zinc-500">
-                Only transaction descriptions are sent for categorization. Files
-                and account details remain in your browser.
-              </p>
-            </div>
+          <MonthlySummaryCards summary={summary} />
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted">
+              {uncategorizedExpenseCount > 0
+                ? `${uncategorizedExpenseCount} uncategorized expense${uncategorizedExpenseCount === 1 ? "" : "s"}`
+                : "All expenses categorized"}
+              {" · "}
+              Only descriptions are sent for AI categorization.
+            </p>
+            <button
+              type="button"
+              onClick={handleCategorizeExpenses}
+              disabled={isCategorizing || uncategorizedExpenseCount === 0}
+              className="bg-green px-4 py-2 text-sm font-medium text-white hover:bg-green-mid disabled:cursor-not-allowed disabled:bg-border disabled:text-muted"
+            >
+              {isCategorizing ? "Categorizing…" : "Categorize expenses"}
+            </button>
           </div>
 
           {categorizeError && (
-            <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div className="border-l-2 border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
               {categorizeError}
             </div>
           )}
-
-          <MonthlySummaryCards summary={summary} />
         </section>
       )}
 
-      <TransactionTable
-        transactions={periodTransactions}
-        totalCount={transactions.length}
-        typeFilter={typeFilter}
-        onTypeFilterChange={setTypeFilter}
-        onTransactionTypeChange={handleTransactionTypeChange}
-        onCategoryChange={handleCategoryChange}
-        emptyMessage={
-          !samplesReady
-            ? "Loading sample data…"
-            : transactions.length === 0
-              ? "No transactions yet. Upload your CSV files or reload the sample data."
-              : "No transactions for this time period."
-        }
-      />
+      <section
+        aria-labelledby="transactions-heading"
+        className="flex flex-col gap-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2
+              id="transactions-heading"
+              className="text-sm font-medium uppercase tracking-wide text-muted"
+            >
+              3 · Transactions
+            </h2>
+            {usingSampleData && transactions.length > 0 && (
+              <span className="border border-green/25 bg-green-soft px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-green">
+                Sample data
+              </span>
+            )}
+          </div>
+          {usingSampleData && transactions.length > 0 && (
+            <p className="text-xs text-muted">
+              Demo checking &amp; credit-card exports — not your accounts
+            </p>
+          )}
+        </div>
+        <TransactionTable
+          transactions={periodTransactions}
+          totalCount={transactions.length}
+          typeFilter={typeFilter}
+          onTypeFilterChange={setTypeFilter}
+          onTransactionTypeChange={handleTransactionTypeChange}
+          onCategoryChange={handleCategoryChange}
+          emptyMessage={
+            !samplesReady
+              ? "Loading sample data…"
+              : transactions.length === 0
+                ? "No transactions yet. Upload your CSV files or reload the sample data."
+                : "No transactions for this time period."
+          }
+        />
+      </section>
     </main>
+    </>
   );
 }

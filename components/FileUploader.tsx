@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import type { Transaction } from "@/types/transaction";
 import { parseCsvFile } from "@/lib/parseCsv";
 
@@ -12,10 +13,16 @@ export default function FileUploader({
   onTransactionsLoaded,
   onUnsupportedFiles,
 }: FileUploaderProps) {
-  async function handleFilesSelected(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
-    const files = Array.from(event.target.files ?? []);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  async function processFiles(fileList: File[]) {
+    const files = fileList.filter(
+      (file) =>
+        file.name.toLowerCase().endsWith(".csv") ||
+        file.type === "text/csv" ||
+        file.type === "application/vnd.ms-excel",
+    );
     if (files.length === 0) return;
 
     const allTransactions: Transaction[] = [];
@@ -38,21 +45,71 @@ export default function FileUploader({
     }
 
     onUnsupportedFiles(unsupported);
+  }
+
+  async function handleFilesSelected(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const files = Array.from(event.target.files ?? []);
+    await processFiles(files);
     event.target.value = "";
   }
 
+  function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+  }
+
+  async function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+    await processFiles(Array.from(event.dataTransfer.files));
+  }
+
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-zinc-700">
-        Upload CSV files
-      </label>
-      <input
-        type="file"
-        accept=".csv,text/csv"
-        multiple
-        onChange={handleFilesSelected}
-        className="block w-full text-sm text-zinc-600 file:mr-4 file:rounded file:border-0 file:bg-zinc-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-700"
-      />
+    <div className="flex w-full flex-col gap-1.5">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={(event) => void handleDrop(event)}
+        className={`cursor-pointer border border-dashed px-4 py-10 text-center transition-colors ${
+          isDragging
+            ? "border-green bg-green-soft/70"
+            : "border-border bg-surface hover:border-green hover:bg-green-soft/40"
+        }`}
+      >
+        <p className="text-sm font-medium text-foreground">
+          {isDragging ? "Drop CSV files here" : "Drag & drop CSV files"}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          or click to browse · checking and credit-card exports
+        </p>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".csv,text/csv"
+          multiple
+          onChange={(event) => void handleFilesSelected(event)}
+          className="sr-only"
+        />
+      </div>
     </div>
   );
 }

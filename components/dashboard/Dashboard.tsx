@@ -184,18 +184,18 @@ export default function Dashboard({
                 : "All expenses categorized — edit any label anytime"}
             </p>
           </div>
-          <CategoryBreakdown
-            items={categoryTop.items}
-            allItems={categoryAll.items}
-          />
           <button
             type="button"
             onClick={onCategorize}
             disabled={isCategorizing || uncategorizedExpenseCount === 0}
-            className="w-full bg-green px-5 py-3.5 text-sm font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-green-mid disabled:cursor-not-allowed disabled:bg-border disabled:text-muted"
+            className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center border-2 border-green bg-green px-5 py-3.5 text-base font-semibold tracking-wide text-white shadow-sm transition-colors hover:border-green-mid hover:bg-green-mid active:scale-[0.99] disabled:cursor-not-allowed disabled:border-border disabled:bg-border disabled:text-muted disabled:active:scale-100"
           >
             {isCategorizing ? "Categorizing…" : "Categorize expenses"}
           </button>
+          <CategoryBreakdown
+            items={categoryTop.items}
+            allItems={categoryAll.items}
+          />
           {(isCategorizing || categorizeProgress > 0) && (
             <div className="flex flex-col gap-1.5">
               <div

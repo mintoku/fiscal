@@ -344,9 +344,16 @@ export default function Home() {
                       <span className="font-mono text-xs text-green">1</span>
                       <span>
                         Try{" "}
-                        <span className="font-medium text-foreground">
+                        <button
+                          type="button"
+                          onClick={() => void handleCategorizeExpenses()}
+                          disabled={
+                            isCategorizing || uncategorizedExpenseCount === 0
+                          }
+                          className="cursor-pointer font-semibold text-green underline underline-offset-2 hover:text-green-mid disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
+                        >
                           Categorize expenses
-                        </span>{" "}
+                        </button>{" "}
                         for smart suggestions — you can change any category.
                       </span>
                     </li>

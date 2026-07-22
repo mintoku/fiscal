@@ -3,11 +3,12 @@
 import { useState } from "react";
 import FileUploader from "@/components/FileUploader";
 import TransactionTable from "@/components/TransactionTable";
-import type { Transaction } from "@/types/transaction";
+import type { Transaction, TransactionType } from "@/types/transaction";
 
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState<string[]>([]);
+  const [typeFilter, setTypeFilter] = useState<"all" | TransactionType>("all");
 
   function handleTransactionsLoaded(newTransactions: Transaction[]) {
     setTransactions((current) => [...current, ...newTransactions]);
@@ -16,6 +17,7 @@ export default function Home() {
   function handleClear() {
     setTransactions([]);
     setUnsupportedFiles([]);
+    setTypeFilter("all");
   }
 
   return (
@@ -52,7 +54,11 @@ export default function Home() {
         </div>
       )}
 
-      <TransactionTable transactions={transactions} />
+      <TransactionTable
+        transactions={transactions}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+      />
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import { classifyTransaction } from "@/lib/classifyTransaction";
 import type { Transaction } from "@/types/transaction";
 
 export type DetectedFormat = "checking" | "credit" | "unsupported";
@@ -72,6 +73,7 @@ function parseCreditCard(
       description: payee,
       amount,
       accountType: "credit",
+      transactionType: classifyTransaction(payee, amount),
       sourceFile,
     });
   });
@@ -101,6 +103,7 @@ function parseChecking(rows: string[][], sourceFile: string): Transaction[] {
       description,
       amount,
       accountType: "checking",
+      transactionType: classifyTransaction(description, amount),
       sourceFile,
     });
   });

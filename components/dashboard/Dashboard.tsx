@@ -29,6 +29,7 @@ type DashboardProps = {
   typeFilter: TypeFilter;
   onTypeFilterChange: (value: TypeFilter) => void;
   onViewTransactions: () => void;
+  usingSampleData: boolean;
   uncategorizedExpenseCount: number;
   isCategorizing: boolean;
   categorizeProgress: number;
@@ -45,6 +46,7 @@ export default function Dashboard({
   typeFilter,
   onTypeFilterChange,
   onViewTransactions,
+  usingSampleData,
   uncategorizedExpenseCount,
   isCategorizing,
   categorizeProgress,
@@ -97,12 +99,19 @@ export default function Dashboard({
           id="dashboard-filters"
           className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
         >
-        <h2
-          id="dashboard-heading"
-          className="text-sm font-medium uppercase tracking-wide text-muted"
-        >
-          2 · Dashboard
-        </h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <h2
+            id="dashboard-heading"
+            className="text-sm font-medium uppercase tracking-wide text-muted"
+          >
+            2 · Dashboard
+          </h2>
+          {usingSampleData && transactions.length > 0 && (
+            <span className="border border-green/25 bg-green-soft px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-green">
+              Sample data
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-muted">
             Period

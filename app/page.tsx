@@ -283,7 +283,7 @@ export default function Home() {
         </button>
       </div>
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 pb-10 pt-6 sm:px-8 sm:pb-12 sm:pt-8">
-        <header className="flex flex-col gap-5 border-b border-border pb-6">
+        <header className="flex flex-col gap-4 border-b border-border pb-6">
           <div className="flex flex-col gap-1">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-green">
               Your financial snapshot
@@ -293,97 +293,121 @@ export default function Home() {
             </h1>
           </div>
 
-          {usingSampleData && transactions.length > 0 && (
-            <details
-              className="group w-full border border-border bg-green-soft/50"
-              open
-            >
-              <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-green marker:content-none [&::-webkit-details-marker]:hidden">
-                <span className="flex items-center justify-between gap-3">
-                  Getting started
-                  <span className="text-xs font-normal text-muted group-open:hidden">
-                    Show
-                  </span>
-                  <span className="hidden text-xs font-normal text-muted group-open:inline">
-                    Hide
+          <details
+            className="group w-full border border-border bg-surface"
+            defaultOpen
+          >
+            <summary className="cursor-pointer list-none px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium uppercase tracking-wide text-muted">
+                  1 · Get started &amp; data
+                </span>
+                <span className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      handleClear();
+                    }}
+                    className="inline-flex min-h-10 items-center border-2 border-foreground/20 bg-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-green hover:text-green"
+                  >
+                    Clear data
+                  </button>
+                  <span className="inline-flex min-h-10 items-center gap-2 border-2 border-green bg-green px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-mid">
+                    <span className="group-open:hidden">Show</span>
+                    <span className="hidden group-open:inline">Hide</span>
+                    <svg
+                      aria-hidden
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="h-4 w-4 transition-transform group-open:rotate-180"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
                   </span>
                 </span>
-              </summary>
-              <ol className="grid gap-3 border-t border-border/70 px-4 py-4 text-sm text-muted sm:grid-cols-3">
-                <li className="flex gap-2">
-                  <span className="font-mono text-xs text-green">1</span>
-                  <span>
-                    Try{" "}
-                    <span className="font-medium text-foreground">
-                      Categorize expenses
-                    </span>{" "}
-                    for smart suggestions — you can change any category.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-mono text-xs text-green">2</span>
-                  <span>
-                    Browse the dashboard insights, then adjust labels anytime.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-mono text-xs text-green">3</span>
-                  <span>
-                    <span className="font-medium text-foreground">Clear</span>,
-                    then upload your own CSVs.
-                  </span>
-                </li>
-              </ol>
-            </details>
-          )}
+              </span>
+            </summary>
 
-          {!usingSampleData && transactions.length === 0 && samplesReady && (
-            <div className="w-full border border-border bg-surface px-4 py-3 text-sm text-muted">
-              Sample cleared. Upload your CSV files, or{" "}
-              <button
-                type="button"
-                onClick={() => void handleReloadSamples()}
-                className="font-medium text-green underline underline-offset-2 hover:text-green-mid"
-              >
-                reload the sample
-              </button>
-              .
+            <div className="grid gap-5 border-t border-border px-4 py-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-medium text-green">Getting started</p>
+                {usingSampleData && transactions.length > 0 ? (
+                  <ol className="space-y-2 text-sm text-muted">
+                    <li className="flex gap-2">
+                      <span className="font-mono text-xs text-green">1</span>
+                      <span>
+                        Try{" "}
+                        <span className="font-medium text-foreground">
+                          Categorize expenses
+                        </span>{" "}
+                        for smart suggestions — you can change any category.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-mono text-xs text-green">2</span>
+                      <span>
+                        Browse the dashboard insights, then adjust labels
+                        anytime.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-mono text-xs text-green">3</span>
+                      <span>
+                        <span className="font-medium text-foreground">
+                          Clear data
+                        </span>
+                        , then upload your own CSVs.
+                      </span>
+                    </li>
+                  </ol>
+                ) : !usingSampleData &&
+                  transactions.length === 0 &&
+                  samplesReady ? (
+                  <p className="text-sm text-muted">
+                    Sample cleared. Upload your CSV files, or{" "}
+                    <button
+                      type="button"
+                      onClick={() => void handleReloadSamples()}
+                      className="font-medium text-green underline underline-offset-2 hover:text-green-mid"
+                    >
+                      reload the sample
+                    </button>
+                    .
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted">
+                    Upload Bank of America checking or credit-card CSV exports
+                    to build your snapshot.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-medium text-foreground">Upload data</p>
+                <FileUploader
+                  onTransactionsLoaded={handleTransactionsLoaded}
+                  onUnsupportedFiles={setUnsupportedFiles}
+                />
+                <p className="border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
+                  Temporary note: only Bank of America checking and credit-card
+                  CSV exports are supported right now.
+                </p>
+                {unsupportedFiles.length > 0 && (
+                  <div className="border border-warn/40 bg-warn-soft px-3 py-2 text-sm text-warn">
+                    Unsupported file
+                    {unsupportedFiles.length === 1 ? "" : "s"}:{" "}
+                    {unsupportedFiles.join(", ")}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </details>
         </header>
-
-        <section aria-labelledby="data-heading" className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-4 border-b border-border pb-2">
-            <h2
-              id="data-heading"
-              className="text-sm font-medium uppercase tracking-wide text-muted"
-            >
-              1 · Data
-            </h2>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-green hover:text-green"
-            >
-              Clear
-            </button>
-          </div>
-          <FileUploader
-            onTransactionsLoaded={handleTransactionsLoaded}
-            onUnsupportedFiles={setUnsupportedFiles}
-          />
-          <p className="border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
-            Temporary note: only Bank of America checking and credit-card CSV
-            exports are supported right now.
-          </p>
-          {unsupportedFiles.length > 0 && (
-            <div className="border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn">
-              Unsupported file
-              {unsupportedFiles.length === 1 ? "" : "s"}:{" "}
-              {unsupportedFiles.join(", ")}
-            </div>
-          )}
-        </section>
 
         <section
           aria-labelledby="dashboard-heading"
@@ -398,6 +422,7 @@ export default function Home() {
             typeFilter={typeFilter}
             onTypeFilterChange={setTypeFilter}
             onViewTransactions={handleViewTransactions}
+            usingSampleData={usingSampleData}
             uncategorizedExpenseCount={uncategorizedExpenseCount}
             isCategorizing={isCategorizing}
             categorizeProgress={categorizeProgress}
@@ -426,9 +451,9 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={handleClear}
-                    className="border border-border bg-surface px-2.5 py-0.5 text-xs font-medium text-foreground hover:border-green hover:text-green"
+                    className="inline-flex min-h-8 items-center border-2 border-foreground/20 bg-surface px-3 py-1 text-xs font-semibold text-foreground hover:border-green hover:text-green"
                   >
-                    Clear
+                    Clear data
                   </button>
                 </>
               )}

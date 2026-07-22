@@ -1,6 +1,11 @@
 "use client";
 
-import type { Transaction, TransactionType } from "@/types/transaction";
+import {
+  EXPENSE_CATEGORIES,
+  type ExpenseCategory,
+  type Transaction,
+  type TransactionType,
+} from "@/types/transaction";
 
 const TRANSACTION_TYPES: TransactionType[] = [
   "expense",
@@ -15,6 +20,7 @@ type TransactionTableProps = {
   typeFilter: "all" | TransactionType;
   onTypeFilterChange: (value: "all" | TransactionType) => void;
   onTransactionTypeChange: (id: string, type: TransactionType) => void;
+  onCategoryChange: (id: string, category: ExpenseCategory) => void;
   emptyMessage?: string;
 };
 
@@ -33,12 +39,50 @@ function sortNewestFirst(transactions: Transaction[]): Transaction[] {
   });
 }
 
+function TypeFilterControls({
+  typeFilter,
+  onTypeFilterChange,
+  countLabel,
+}: {
+  typeFilter: "all" | TransactionType;
+  onTypeFilterChange: (value: "all" | TransactionType) => void;
+  countLabel?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <label
+        htmlFor="type-filter"
+        className="text-sm font-medium text-zinc-700"
+      >
+        Filter by type
+      </label>
+      <select
+        id="type-filter"
+        value={typeFilter}
+        onChange={(event) =>
+          onTypeFilterChange(event.target.value as "all" | TransactionType)
+        }
+        className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-800"
+      >
+        <option value="all">All</option>
+        <option value="expense">Expense</option>
+        <option value="income">Income</option>
+        <option value="transfer">Transfer</option>
+      </select>
+      {countLabel ? (
+        <span className="text-sm text-zinc-500">{countLabel}</span>
+      ) : null}
+    </div>
+  );
+}
+
 export default function TransactionTable({
   transactions,
   totalCount,
   typeFilter,
   onTypeFilterChange,
   onTransactionTypeChange,
+  onCategoryChange,
   emptyMessage,
 }: TransactionTableProps) {
   if (transactions.length === 0 && !emptyMessage) {
@@ -53,27 +97,10 @@ export default function TransactionTable({
   if (transactions.length === 0 && emptyMessage) {
     return (
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="type-filter"
-            className="text-sm font-medium text-zinc-700"
-          >
-            Filter by type
-          </label>
-          <select
-            id="type-filter"
-            value={typeFilter}
-            onChange={(event) =>
-              onTypeFilterChange(event.target.value as "all" | TransactionType)
-            }
-            className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-800"
-          >
-            <option value="all">All</option>
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-            <option value="transfer">Transfer</option>
-          </select>
-        </div>
+        <TypeFilterControls
+          typeFilter={typeFilter}
+          onTypeFilterChange={onTypeFilterChange}
+        />
         <div className="rounded border border-dashed border-zinc-300 bg-zinc-50 px-4 py-10 text-center text-sm text-zinc-500">
           {emptyMessage}
         </div>
@@ -92,31 +119,11 @@ export default function TransactionTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <label
-          htmlFor="type-filter"
-          className="text-sm font-medium text-zinc-700"
-        >
-          Filter by type
-        </label>
-        <select
-          id="type-filter"
-          value={typeFilter}
-          onChange={(event) =>
-            onTypeFilterChange(event.target.value as "all" | TransactionType)
-          }
-          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-800"
-        >
-          <option value="all">All</option>
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
-          <option value="transfer">Transfer</option>
-        </select>
-        <span className="text-sm text-zinc-500">
-          {sorted.length} shown · {transactions.length} in period ·{" "}
-          {countTotal} total
-        </span>
-      </div>
+      <TypeFilterControls
+        typeFilter={typeFilter}
+        onTypeFilterChange={onTypeFilterChange}
+        countLabel={`${sorted.length} shown · ${transactions.length} in period · ${countTotal} total`}
+      />
 
       {sorted.length === 0 ? (
         <div className="rounded border border-dashed border-zinc-300 bg-zinc-50 px-4 py-10 text-center text-sm text-zinc-500">
@@ -131,6 +138,7 @@ export default function TransactionTable({
                 <th className="px-4 py-3 font-medium">Description</th>
                 <th className="px-4 py-3 font-medium">Account Type</th>
                 <th className="px-4 py-3 font-medium">Type</th>
+                <th className="px-4 py-3 font-medium">Category</th>
                 <th className="px-4 py-3 font-medium text-right">Amount</th>
                 <th className="px-4 py-3 font-medium">Source File</th>
               </tr>
@@ -163,6 +171,41 @@ export default function TransactionTable({
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    {transaction.transactionType === "expense" ? (
+                      <div className="flex items-center gap-2">
+                        <select
+                          aria-label={`Category for ${transaction.description}`}
+                          value={transaction.category ?? ""}
+                          onChange={(event) =>
+                            onCategoryChange(
+                              transaction.id,
+                              event.target.value as ExpenseCategory,
+                            )
+                          }
+                          className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-800"
+                        >
+                          <option value="" disabled>
+                            Uncategorized
+                          </option>
+                          {EXPENSE_CATEGORIES.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                        {transaction.categorySource ? (
+                          <span className="text-xs text-zinc-400">
+                            {transaction.categorySource === "ai"
+                              ? "AI"
+                              : "Manual"}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="text-zinc-400">—</span>
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
                     {formatCurrency(transaction.amount)}

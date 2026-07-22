@@ -75,6 +75,9 @@ function parseCreditCard(
       accountType: "credit",
       transactionType: classifyTransaction(payee, amount),
       sourceFile,
+      category: null,
+      categorySource: null,
+      categoryConfidence: null,
     });
   });
 
@@ -105,6 +108,9 @@ function parseChecking(rows: string[][], sourceFile: string): Transaction[] {
       accountType: "checking",
       transactionType: classifyTransaction(description, amount),
       sourceFile,
+      category: null,
+      categorySource: null,
+      categoryConfidence: null,
     });
   });
 

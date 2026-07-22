@@ -2,10 +2,17 @@
 
 import type { Transaction, TransactionType } from "@/types/transaction";
 
+const TRANSACTION_TYPES: TransactionType[] = [
+  "expense",
+  "income",
+  "transfer",
+];
+
 type TransactionTableProps = {
   transactions: Transaction[];
   typeFilter: "all" | TransactionType;
   onTypeFilterChange: (value: "all" | TransactionType) => void;
+  onTransactionTypeChange: (id: string, type: TransactionType) => void;
 };
 
 function formatCurrency(amount: number): string {
@@ -27,6 +34,7 @@ export default function TransactionTable({
   transactions,
   typeFilter,
   onTypeFilterChange,
+  onTransactionTypeChange,
 }: TransactionTableProps) {
   if (transactions.length === 0) {
     return (
@@ -94,8 +102,24 @@ export default function TransactionTable({
                 <td className="px-4 py-3 capitalize">
                   {transaction.accountType}
                 </td>
-                <td className="px-4 py-3 capitalize">
-                  {transaction.transactionType}
+                <td className="px-4 py-3">
+                  <select
+                    aria-label={`Type for ${transaction.description}`}
+                    value={transaction.transactionType}
+                    onChange={(event) =>
+                      onTransactionTypeChange(
+                        transaction.id,
+                        event.target.value as TransactionType,
+                      )
+                    }
+                    className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm capitalize text-zinc-800"
+                  >
+                    {TRANSACTION_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
                   {formatCurrency(transaction.amount)}

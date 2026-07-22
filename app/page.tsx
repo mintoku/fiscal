@@ -14,6 +14,19 @@ export default function Home() {
     setTransactions((current) => [...current, ...newTransactions]);
   }
 
+  function handleTransactionTypeChange(
+    id: string,
+    transactionType: TransactionType,
+  ) {
+    setTransactions((current) =>
+      current.map((transaction) =>
+        transaction.id === id
+          ? { ...transaction, transactionType }
+          : transaction,
+      ),
+    );
+  }
+
   function handleClear() {
     setTransactions([]);
     setUnsupportedFiles([]);
@@ -58,6 +71,7 @@ export default function Home() {
         transactions={transactions}
         typeFilter={typeFilter}
         onTypeFilterChange={setTypeFilter}
+        onTransactionTypeChange={handleTransactionTypeChange}
       />
     </main>
   );

@@ -51,6 +51,7 @@ async function loadSampleTransactions(): Promise<Transaction[]> {
 
 export default function Home() {
   const [hasStarted, setHasStarted] = useState(false);
+  const [dataPanelOpen, setDataPanelOpen] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -295,7 +296,8 @@ export default function Home() {
 
           <details
             className="group w-full border border-border bg-surface"
-            defaultOpen
+            open={dataPanelOpen}
+            onToggle={(event) => setDataPanelOpen(event.currentTarget.open)}
           >
             <summary className="cursor-pointer list-none px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
               <span className="flex items-center justify-between gap-3">

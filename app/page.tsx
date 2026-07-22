@@ -108,9 +108,18 @@ export default function Home() {
         body: JSON.stringify({ transactions: uniqueExpenses }),
       });
 
-      const data = (await response.json()) as
-        | CategorizeResponse
-        | { error?: string };
+      const raw = await response.text();
+      let data: CategorizeResponse | { error?: string };
+      try {
+        data = JSON.parse(raw) as CategorizeResponse | { error?: string };
+      } catch {
+        setCategorizeError(
+          response.status === 404
+            ? "Categorization API is unavailable on this host (static sites like GitHub Pages cannot run /api routes). Use npm run dev locally or deploy to a Node host such as Vercel."
+            : "Categorization failed. Your transactions were left unchanged.",
+        );
+        return;
+      }
 
       if (!response.ok || !("results" in data)) {
         setCategorizeError(

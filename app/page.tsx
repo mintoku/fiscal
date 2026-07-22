@@ -460,6 +460,47 @@ export default function Home() {
           }
         />
       </section>
+
+      <section
+        aria-labelledby="privacy-heading"
+        className="border-t border-border pt-6"
+      >
+        <h2
+          id="privacy-heading"
+          className="text-sm font-medium uppercase tracking-wide text-muted"
+        >
+          Privacy
+        </h2>
+        <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted">
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li>No account login is required.</li>
+            <li>Bank usernames, passwords, and credentials are never collected.</li>
+            <li>
+              CSV files are read and parsed in your browser; they are not uploaded
+              to a file-storage service.
+            </li>
+            <li>
+              Transaction data lives in this page&apos;s memory only for your
+              session — refreshing or clearing removes it.
+            </li>
+            <li>You can explore with built-in sample data instead of your own files.</li>
+          </ul>
+          <p>
+            <span className="font-medium text-foreground">
+              When you click Categorize expenses:
+            </span>{" "}
+            only uncategorized expense rows are considered. Matching descriptions
+            are deduplicated, then each unique item is sent as{" "}
+            <span className="font-mono text-xs text-foreground">
+              {"{ id, description }"}
+            </span>{" "}
+            to this app&apos;s categorization API, which calls an AI provider.
+            Amounts, account types, source filenames, balances, and full CSV
+            contents are not included in that request. Suggested categories stay
+            editable by you.
+          </p>
+        </div>
+      </section>
     </main>
     </>
   );

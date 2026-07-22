@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FileUploader from "@/components/FileUploader";
 import MonthlySummaryCards from "@/components/MonthlySummaryCards";
 import TransactionTable from "@/components/TransactionTable";
@@ -15,6 +15,7 @@ import {
   getUniqueUncategorizedExpenses,
   normalizeDescription,
 } from "@/lib/categorizeExpenses";
+import { parseCsvFile } from "@/lib/parseCsv";
 import type { CategorizeResponse } from "@/types/categorize";
 import type {
   ExpenseCategory,
@@ -22,13 +23,58 @@ import type {
   TransactionType,
 } from "@/types/transaction";
 
+const SAMPLE_FILES = [
+  "/samples/sample-checking-transactions.csv",
+  "/samples/sample-credit-card-transactions.csv",
+] as const;
+
+async function loadSampleTransactions(): Promise<Transaction[]> {
+  const loaded: Transaction[] = [];
+
+  for (const path of SAMPLE_FILES) {
+    const response = await fetch(path);
+    if (!response.ok) continue;
+    const text = await response.text();
+    const fileName = path.split("/").pop() ?? path;
+    const result = parseCsvFile(text, fileName);
+    if (result.format !== "unsupported") {
+      loaded.push(...result.transactions);
+    }
+  }
+
+  return loaded;
+}
+
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<"all" | TransactionType>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(ALL_TIME);
   const [isCategorizing, setIsCategorizing] = useState(false);
   const [categorizeError, setCategorizeError] = useState<string | null>(null);
+  const [usingSampleData, setUsingSampleData] = useState(true);
+  const [samplesReady, setSamplesReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSamples() {
+      try {
+        const sampleTransactions = await loadSampleTransactions();
+        if (cancelled || sampleTransactions.length === 0) return;
+        setTransactions(sampleTransactions);
+        setUsingSampleData(true);
+        setSelectedPeriod(ALL_TIME);
+      } finally {
+        if (!cancelled) setSamplesReady(true);
+      }
+    }
+
+    void loadSamples();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const availableMonths = getAvailableMonths(transactions);
   const effectivePeriod =
@@ -50,7 +96,12 @@ export default function Home() {
   ).length;
 
   function handleTransactionsLoaded(newTransactions: Transaction[]) {
-    setTransactions((current) => [...current, ...newTransactions]);
+    setTransactions((current) =>
+      usingSampleData
+        ? newTransactions
+        : [...current, ...newTransactions],
+    );
+    setUsingSampleData(false);
   }
 
   function handleTransactionTypeChange(
@@ -171,24 +222,71 @@ export default function Home() {
     }
   }
 
+  async function handleReloadSamples() {
+    setUnsupportedFiles([]);
+    setTypeFilter("all");
+    setSelectedPeriod(ALL_TIME);
+    setCategorizeError(null);
+    const sampleTransactions = await loadSampleTransactions();
+    setTransactions(sampleTransactions);
+    setUsingSampleData(true);
+  }
+
   function handleClear() {
     setTransactions([]);
     setUnsupportedFiles([]);
     setTypeFilter("all");
-    setSelectedPeriod(null);
+    setSelectedPeriod(ALL_TIME);
     setCategorizeError(null);
+    setUsingSampleData(false);
   }
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col gap-3">
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
           Spending Retrospective
         </h1>
         <p className="max-w-2xl text-zinc-600">
-          Upload Bank of America checking or credit-card CSV exports to view
-          your transactions in one place.
+          Explore a sample checking and credit-card export, then try AI
+          categorization. When you&apos;re ready for your own data, clear the
+          sample and upload your Bank of America CSV files.
         </p>
+
+        {usingSampleData && transactions.length > 0 && (
+          <div className="rounded border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+            <p className="font-medium">Getting started</p>
+            <ol className="mt-1 list-decimal space-y-1 pl-5">
+              <li>
+                Sample data is loaded. Click <strong>Categorize expenses</strong>{" "}
+                to label the uncategorized expenses.
+              </li>
+              <li>
+                Review or correct categories in the table, and browse months
+                with the time period control.
+              </li>
+              <li>
+                When ready for your own info, click <strong>Clear</strong>, then
+                upload your CSV files.
+              </li>
+            </ol>
+          </div>
+        )}
+
+        {!usingSampleData && transactions.length === 0 && samplesReady && (
+          <div className="rounded border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+            Sample data cleared. Upload your own Bank of America checking or
+            credit-card CSV files, or{" "}
+            <button
+              type="button"
+              onClick={() => void handleReloadSamples()}
+              className="font-medium text-zinc-900 underline underline-offset-2 hover:text-zinc-700"
+            >
+              reload the sample data
+            </button>
+            .
+          </div>
+        )}
       </header>
 
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -247,6 +345,17 @@ export default function Home() {
               >
                 {isCategorizing ? "Categorizing…" : "Categorize expenses"}
               </button>
+              {uncategorizedExpenseCount > 0 ? (
+                <p className="text-xs text-zinc-600">
+                  {uncategorizedExpenseCount} uncategorized expense
+                  {uncategorizedExpenseCount === 1 ? "" : "s"} ready — click to
+                  categorize.
+                </p>
+              ) : (
+                <p className="text-xs text-zinc-500">
+                  All expenses are categorized. You can still edit any row.
+                </p>
+              )}
               <p className="text-xs text-zinc-500">
                 Only transaction descriptions are sent for categorization. Files
                 and account details remain in your browser.
@@ -272,9 +381,11 @@ export default function Home() {
         onTransactionTypeChange={handleTransactionTypeChange}
         onCategoryChange={handleCategoryChange}
         emptyMessage={
-          transactions.length === 0
-            ? undefined
-            : "No transactions for this time period."
+          !samplesReady
+            ? "Loading sample data…"
+            : transactions.length === 0
+              ? "No transactions yet. Upload your CSV files or reload the sample data."
+              : "No transactions for this time period."
         }
       />
     </main>

@@ -42,6 +42,11 @@ export default function LandingHero({ onStart }: LandingHeroProps) {
               when you categorize.
             </p>
           </div>
+
+          <p className="max-w-lg border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
+            Temporary note: only Bank of America checking and credit-card CSV
+            exports are supported right now.
+          </p>
         </div>
 
         <ul className="grid max-w-2xl gap-4 text-sm text-muted sm:grid-cols-3">
@@ -52,9 +57,10 @@ export default function LandingHero({ onStart }: LandingHeroProps) {
             </p>
           </li>
           <li className="border-t border-border pt-3">
-            <p className="font-medium text-foreground">Categorize with AI</p>
+            <p className="font-medium text-foreground">Smart categorization</p>
             <p className="mt-1 leading-relaxed">
-              Label expenses in one click, then correct anything by hand.
+              AI suggests expense categories in one click — you stay in control
+              and can edit any label.
             </p>
           </li>
           <li className="border-t border-border pt-3">

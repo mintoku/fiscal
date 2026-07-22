@@ -287,16 +287,18 @@ export default function Home() {
               <li className="flex gap-2">
                 <span className="font-mono text-xs text-green">1</span>
                 <span>
-                  Click{" "}
+                  Try{" "}
                   <span className="font-medium text-foreground">
                     Categorize expenses
                   </span>{" "}
-                  to label the sample.
+                  for smart suggestions — you can change any category.
                 </span>
               </li>
               <li className="flex gap-2">
                 <span className="font-mono text-xs text-green">2</span>
-                <span>Browse periods and fix categories in the table.</span>
+                <span>
+                  Browse periods and adjust labels anytime; you stay in control.
+                </span>
               </li>
               <li className="flex gap-2">
                 <span className="font-mono text-xs text-green">3</span>
@@ -344,6 +346,10 @@ export default function Home() {
           onTransactionsLoaded={handleTransactionsLoaded}
           onUnsupportedFiles={setUnsupportedFiles}
         />
+        <p className="border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
+          Temporary note: only Bank of America checking and credit-card CSV
+          exports are supported right now.
+        </p>
         {unsupportedFiles.length > 0 && (
           <div className="border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn">
             Unsupported file
@@ -388,18 +394,19 @@ export default function Home() {
           <MonthlySummaryCards summary={summary} />
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-muted">
+            <p className="max-w-md text-xs leading-relaxed text-muted">
               {uncategorizedExpenseCount > 0
                 ? `${uncategorizedExpenseCount} uncategorized expense${uncategorizedExpenseCount === 1 ? "" : "s"}`
                 : "All expenses categorized"}
               {" · "}
-              Only descriptions are sent for AI categorization.
+              Smart suggestions only — edit any category yourself. Only
+              descriptions are sent.
             </p>
             <button
               type="button"
               onClick={handleCategorizeExpenses}
               disabled={isCategorizing || uncategorizedExpenseCount === 0}
-              className="bg-green px-4 py-2 text-sm font-medium text-white hover:bg-green-mid disabled:cursor-not-allowed disabled:bg-border disabled:text-muted"
+              className="shrink-0 bg-green px-4 py-2 text-sm font-medium text-white hover:bg-green-mid disabled:cursor-not-allowed disabled:bg-border disabled:text-muted"
             >
               {isCategorizing ? "Categorizing…" : "Categorize expenses"}
             </button>

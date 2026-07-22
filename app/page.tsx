@@ -2,13 +2,36 @@
 
 import { useState } from "react";
 import FileUploader from "@/components/FileUploader";
+import MonthlySummaryCards from "@/components/MonthlySummaryCards";
 import TransactionTable from "@/components/TransactionTable";
+import {
+  ALL_TIME,
+  calculateMonthlySummary,
+  filterTransactionsByPeriod,
+  formatMonthLabel,
+  getAvailableMonths,
+} from "@/lib/calculateMonthlySummary";
 import type { Transaction, TransactionType } from "@/types/transaction";
 
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<"all" | TransactionType>("all");
+  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
+
+  const availableMonths = getAvailableMonths(transactions);
+  const effectivePeriod =
+    selectedPeriod === ALL_TIME
+      ? ALL_TIME
+      : selectedPeriod && availableMonths.includes(selectedPeriod)
+        ? selectedPeriod
+        : (availableMonths[0] ?? null);
+
+  const periodTransactions = filterTransactionsByPeriod(
+    transactions,
+    effectivePeriod,
+  );
+  const summary = calculateMonthlySummary(periodTransactions);
 
   function handleTransactionsLoaded(newTransactions: Transaction[]) {
     setTransactions((current) => [...current, ...newTransactions]);
@@ -31,6 +54,7 @@ export default function Home() {
     setTransactions([]);
     setUnsupportedFiles([]);
     setTypeFilter("all");
+    setSelectedPeriod(null);
   }
 
   return (
@@ -67,11 +91,45 @@ export default function Home() {
         </div>
       )}
 
+      {transactions.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="period-selector"
+              className="text-sm font-medium text-zinc-700"
+            >
+              Time period
+            </label>
+            <select
+              id="period-selector"
+              value={effectivePeriod ?? ""}
+              onChange={(event) => setSelectedPeriod(event.target.value)}
+              className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-800"
+            >
+              <option value={ALL_TIME}>All time</option>
+              {availableMonths.map((monthKey) => (
+                <option key={monthKey} value={monthKey}>
+                  {formatMonthLabel(monthKey)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <MonthlySummaryCards summary={summary} />
+        </section>
+      )}
+
       <TransactionTable
-        transactions={transactions}
+        transactions={periodTransactions}
+        totalCount={transactions.length}
         typeFilter={typeFilter}
         onTypeFilterChange={setTypeFilter}
         onTransactionTypeChange={handleTransactionTypeChange}
+        emptyMessage={
+          transactions.length === 0
+            ? undefined
+            : "No transactions for this time period."
+        }
       />
     </main>
   );

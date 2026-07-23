@@ -1,0 +1,19 @@
+{
+  "name": "fiscal-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.848.0",
+    "@aws-sdk/client-s3": "^3.848.0",
+    "@aws-sdk/lib-dynamodb": "^3.848.0",
+    "@aws-sdk/s3-request-presigner": "^3.848.0",
+    "papaparse": "^5.5.4"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.150",
+    "@types/papaparse": "^5.5.2",
+    "esbuild": "^0.25.5",
+    "typescript": "^5.8.3"
+  }
+}

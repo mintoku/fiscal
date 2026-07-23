@@ -34,6 +34,12 @@ yarn-error.log*
 .env*
 !.env.example
 
+# aws cdk
+infra/cdk.out
+infra/dist
+infra/node_modules
+services/api/node_modules
+
 # vercel
 .vercel
 

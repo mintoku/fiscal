@@ -1,0 +1,21 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/fiscal.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.d.ts",
+      "**/*.js",
+      "tsconfig.json",
+      "package*",
+      "node_modules",
+      "dist",
+      "cdk.out"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "allowedOrigins": "http://localhost:3000,http://127.0.0.1:3000"
+  }
+}

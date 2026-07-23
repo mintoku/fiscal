@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 type LandingHeroProps = {
   onStart: () => void;
@@ -27,8 +28,9 @@ export default function LandingHero({ onStart }: LandingHeroProps) {
             Fiscal
           </h1>
           <p className="max-w-lg text-lg leading-relaxed text-muted sm:text-xl">
-            Turn Bank of America checking and credit-card exports into a clear
-            picture of income, expenses, and transfers.
+            See how Bank of America checking and credit-card exports become a
+            clear picture of income, expenses, and transfers — starting with
+            sample data.
           </p>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
@@ -37,17 +39,21 @@ export default function LandingHero({ onStart }: LandingHeroProps) {
               onClick={onStart}
               className="w-full bg-green px-8 py-4 text-base font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-green-mid sm:w-auto sm:min-w-[14rem]"
             >
-              Start exploring
+              Try the demo
             </button>
             <p className="text-xs leading-relaxed text-muted sm:max-w-xs">
-              Files stay in your browser. Only transaction descriptions are sent
-              when you categorize.
+              Explore with sample transactions. Upload your own files afterward
+              in your workspace.
             </p>
           </div>
-
-          <p className="max-w-lg border border-warn/35 bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
-            Temporary note: only Bank of America checking and credit-card CSV
-            exports are supported right now.
+          <p className="text-sm text-muted">
+            Already know the drill?{" "}
+            <Link
+              href="/workspace"
+              className="font-semibold text-green underline underline-offset-2 hover:text-green-mid"
+            >
+              Open your workspace
+            </Link>
           </p>
         </div>
 
@@ -69,22 +75,23 @@ export default function LandingHero({ onStart }: LandingHeroProps) {
 
         <ul className="grid max-w-4xl gap-4 pb-16 text-sm text-muted sm:grid-cols-3">
           <li className="border-t border-border pt-3">
-            <p className="font-medium text-foreground">Explore a sample</p>
+            <p className="font-medium text-foreground">1 · Try the demo</p>
             <p className="mt-1 leading-relaxed">
               Start with demo checking and card transactions already loaded.
             </p>
           </li>
           <li className="border-t border-border pt-3">
-            <p className="font-medium text-foreground">Smart categorization</p>
+            <p className="font-medium text-foreground">2 · Explore insights</p>
             <p className="mt-1 leading-relaxed">
-              AI suggests expense categories in one click — you stay in control
-              and can edit any label.
+              Categorize expenses, filter the dashboard, and review the
+              transaction list.
             </p>
           </li>
           <li className="border-t border-border pt-3">
-            <p className="font-medium text-foreground">Use your own CSVs</p>
+            <p className="font-medium text-foreground">3 · Use your files</p>
             <p className="mt-1 leading-relaxed">
-              Clear the sample when ready and drop in your exports.
+              Open your workspace to upload statements and build a lasting
+              ledger in the cloud.
             </p>
           </li>
         </ul>

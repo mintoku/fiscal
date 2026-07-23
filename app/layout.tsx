@@ -26,7 +26,8 @@ const sourceCode = Source_Code_Pro({
 
 export const metadata: Metadata = {
   title: "Fiscal",
-  description: "Upload Bank of America CSV exports to review transactions.",
+  description:
+    "Try the Fiscal demo with sample data, then upload your Bank of America CSVs in a cloud-backed workspace.",
 };
 
 export default function RootLayout({

@@ -1,0 +1,56 @@
+name: Deploy AWS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - "services/api/**"
+      - "lib/parseCsv.ts"
+      - "lib/classifyTransaction.ts"
+      - "types/transaction.ts"
+      - ".github/workflows/deploy-aws.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            services/api/package-lock.json
+            infra/package-lock.json
+
+      - name: Install API deps
+        working-directory: services/api
+        run: npm ci
+
+      - name: Install infra deps
+        working-directory: infra
+        run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+      - name: CDK deploy
+        working-directory: infra
+        run: >
+          npx cdk deploy --require-approval never
+          -c allowedOrigins=${{ vars.ALLOWED_ORIGINS || 'http://localhost:3000' }}
+          --outputs-file outputs.json
+
+      - name: Show stack outputs
+        working-directory: infra
+        run: cat outputs.json

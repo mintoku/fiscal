@@ -58,8 +58,8 @@ export default function Dashboard({
   if (transactions.length === 0) {
     return (
       <div className="border border-dashed border-border bg-surface px-4 py-12 text-center text-sm text-muted">
-        No transactions loaded yet. Upload a Bank of America CSV or reload the
-        sample data to see your dashboard.
+        No transactions loaded yet. Upload a Bank of America CSV to see your
+        dashboard.
       </div>
     );
   }

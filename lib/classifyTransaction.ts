@@ -1,4 +1,4 @@
-import type { TransactionType } from "@/types/transaction";
+import type { TransactionType } from "../types/transaction";
 
 /**
  * Simple keyword + sign rules so credit-card payments and account

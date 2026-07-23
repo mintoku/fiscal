@@ -1,0 +1,29 @@
+{
+  "name": "fiscal-infra",
+  "private": true,
+  "version": "0.1.0",
+  "bin": {
+    "fiscal-infra": "bin/fiscal.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy --require-approval never",
+    "diff": "cdk diff",
+    "destroy": "cdk destroy"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.30",
+    "aws-cdk": "^2.1018.1",
+    "esbuild": "^0.25.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.201.0",
+    "constructs": "^10.4.2",
+    "source-map-support": "^0.5.21"
+  }
+}

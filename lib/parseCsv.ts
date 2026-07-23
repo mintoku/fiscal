@@ -1,6 +1,6 @@
 import Papa from "papaparse";
-import { classifyTransaction } from "@/lib/classifyTransaction";
-import type { Transaction } from "@/types/transaction";
+import { classifyTransaction } from "./classifyTransaction";
+import type { Transaction } from "../types/transaction";
 
 export type DetectedFormat = "checking" | "credit" | "unsupported";
 

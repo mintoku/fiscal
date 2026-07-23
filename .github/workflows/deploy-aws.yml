@@ -1,16 +1,9 @@
 name: Deploy AWS
 
+# Manual only until GitHub OIDC → AWS is configured (secret AWS_ROLE_ARN).
+# Local deploy: cd infra && npm run deploy
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "infra/**"
-      - "services/api/**"
-      - "lib/parseCsv.ts"
-      - "lib/classifyTransaction.ts"
-      - "types/transaction.ts"
-      - ".github/workflows/deploy-aws.yml"
 
 permissions:
   id-token: write
@@ -24,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: npm
           cache-dependency-path: |
             services/api/package-lock.json
@@ -41,7 +34,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: CDK deploy

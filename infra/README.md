@@ -62,3 +62,13 @@ Optional header: `x-user-id` (defaults to `demo`).
 ```bash
 cd infra && npm run destroy
 ```
+
+## GitHub Actions deploy (optional)
+
+The `Deploy AWS` workflow is **manual only** (`workflow_dispatch`). It needs:
+
+1. An IAM role GitHub can assume via OIDC
+2. Repo secret `AWS_ROLE_ARN`
+3. Optional vars: `AWS_REGION` (default `us-east-1`), `ALLOWED_ORIGINS`
+
+Until those exist, deploy locally with `npm run deploy` — that is enough for development.

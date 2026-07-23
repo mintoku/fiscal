@@ -1,6 +1,6 @@
 import type { Transaction } from "@/types/transaction";
 
-const DEFAULT_USER_ID = "demo";
+const USER_ID_STORAGE_KEY = "fiscal:user-id";
 
 export function getApiBaseUrl(): string | null {
   const url = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -9,6 +9,20 @@ export function getApiBaseUrl(): string | null {
 
 export function isCloudApiConfigured(): boolean {
   return getApiBaseUrl() !== null;
+}
+
+/** Stable per-browser id for workspace API calls (localStorage). */
+export function getOrCreateBrowserUserId(): string {
+  if (typeof window === "undefined") {
+    throw new Error("Browser user id is only available in the browser");
+  }
+
+  const existing = window.localStorage.getItem(USER_ID_STORAGE_KEY)?.trim();
+  if (existing) return existing;
+
+  const created = crypto.randomUUID();
+  window.localStorage.setItem(USER_ID_STORAGE_KEY, created);
+  return created;
 }
 
 async function apiFetch<T>(
@@ -24,7 +38,7 @@ async function apiFetch<T>(
   if (!headers.has("content-type") && init.body) {
     headers.set("content-type", "application/json");
   }
-  headers.set("x-user-id", DEFAULT_USER_ID);
+  headers.set("x-user-id", getOrCreateBrowserUserId());
 
   const response = await fetch(`${base}${path}`, {
     ...init,
